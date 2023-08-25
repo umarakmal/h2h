@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import axios from "axios";
 import { authenticate, isAuth } from "./helpers";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
 const url = `${process.env.REACT_APP_BACKEND_URL}`;
 function SignIn() {
   const {
@@ -16,6 +15,39 @@ function SignIn() {
   } = useForm({});
   let navigate = useNavigate();
 
+  // const [ip, setIP] = useState("");
+  const [show, setShow] = useState(false)
+
+  const getData = async (event) => {
+    try {
+      const response = await fetch(`${url}/ip`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        toast.error('Error Occured')
+      }
+
+      const data = await response.json();
+      if (response.status === 200) {
+        console.log(data);
+        // setIP(data);
+        if (data === 1) {
+          setShow(true)
+        }
+      }
+    } catch (error) {
+      toast.error("Error Occured")
+    }
+  };
+
+  // console.log(ip);
+  useEffect(() => {
+    getData();
+  }, []);
   const onSubmit = async (data) => {
     var employeeid = data.employeeid;
     var password = data.password;
@@ -33,49 +65,7 @@ function SignIn() {
         authenticate(response, () => {
           isAuth() ? navigate("/request-form") : navigate("/");
         });
-        // console.log(response.data.user.result1.EmployeeID);
-        const getEmpCheck = async () => {
-          try {
-            const handler = await response.data.user.result1.EmployeeID;
-            const response1 = await fetch(`${url}/api/get-handler-menu`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ handler }),
-            });
 
-            if (!response1.ok) {
-              throw new Error("Request failed");
-            }
-            const data = await response1.json();
-            if (response1.status === 200) {
-              localStorage.setItem("handler1", data.length);
-            }
-          } catch (error) {}
-        };
-        const getEmpCheckL2 = async () => {
-          try {
-            const handler = await response.data.user.result1.EmployeeID;
-            const response2 = await fetch(`${url}/api/get-handler-menu-l2`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ handler }),
-            });
-
-            if (!response2.ok) {
-              throw new Error("Request failed");
-            }
-            const data1 = await response2.json();
-            if (response2.status === 200) {
-              localStorage.setItem("handler2", data1.length);
-            }
-          } catch (error) {}
-        };
-        getEmpCheck();
-        getEmpCheckL2();
         window.location.reload();
       })
       .catch((error) => {
@@ -94,75 +84,81 @@ function SignIn() {
         <div className="login-box">
           <div className="login-logo"></div>
           {/* /.login-logo */}
-          <div className="card">
-            <div className="card-body login-card-body">
-              <p className="login-box-msg">Sign in to start your session</p>
+          {show ? <>
+            <div className="card">
+              <div className="card-body login-card-body">
+                <p className="login-box-msg">Sign in to start your session</p>
 
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="input-group mb-3">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Employee ID"
-                    {...register(`employeeid`, {
-                      required: "Employee ID is required.",
-                    })}
-                  />
-                  <div className="input-group-append">
-                    <div className="input-group-text">
-                      <span className="fas fa-id-card"></span>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Employee ID"
+                      {...register(`employeeid`, {
+                        required: "Employee ID is required.",
+                      })}
+                    />
+                    <div className="input-group-append">
+                      <div className="input-group-text">
+                        <span className="fas fa-id-card"></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <ErrorMessage
-                  errors={errors}
-                  name="employeeid"
-                  render={({ message }) => (
-                    <p style={{ color: "red", fontSize: "0.8rem" }}>
-                      {message}
-                    </p>
-                  )}
-                />
-                <div className="input-group mb-3">
-                  <input
-                    type="password"
-                    className="form-control"
-                    placeholder="Password"
-                    {...register(`password`, {
-                      required: "Password is required.",
-                    })}
+                  <ErrorMessage
+                    errors={errors}
+                    name="employeeid"
+                    render={({ message }) => (
+                      <p style={{ color: "red", fontSize: "0.8rem" }}>
+                        {message}
+                      </p>
+                    )}
                   />
-                  <div className="input-group-append">
-                    <div className="input-group-text">
-                      <span className="fas fa-lock"></span>
+                  <div className="input-group mb-3">
+                    <input
+                      type="password"
+                      className="form-control"
+                      placeholder="Password"
+                      {...register(`password`, {
+                        required: "Password is required.",
+                      })}
+                    />
+                    <div className="input-group-append">
+                      <div className="input-group-text">
+                        <span className="fas fa-lock"></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <ErrorMessage
-                  errors={errors}
-                  name="password"
-                  render={({ message }) => (
-                    <p style={{ color: "red", fontSize: "0.8rem" }}>
-                      {message}
-                    </p>
-                  )}
-                />
-                <div className="row">
-                  <div className="col-8"></div>
-                  {/* /.col */}
-                  <div className="col-4">
-                    <button type="submit" className="btn btn-primary btn-block">
-                      Sign In
-                    </button>
+                  <ErrorMessage
+                    errors={errors}
+                    name="password"
+                    render={({ message }) => (
+                      <p style={{ color: "red", fontSize: "0.8rem" }}>
+                        {message}
+                      </p>
+                    )}
+                  />
+                  <div className="row">
+                    <div className="col-8"></div>
+                    {/* /.col */}
+                    <div className="col-4">
+                      <button type="submit" className="btn btn-primary btn-block">
+                        Sign In
+                      </button>
+                    </div>
+                    {/* /.col */}
                   </div>
-                  {/* /.col */}
-                </div>
-              </form>
+                </form>
 
-              {/* /.social-auth-links */}
+                {/* /.social-auth-links */}
+              </div>
+              {/* /.login-card-body */}
             </div>
-            {/* /.login-card-body */}
-          </div>
+          </> : <center>
+            <div className='text-muted mt-lg-5' >
+              <h2>You are not authorised to access this.</h2>
+            </div>
+          </center>}
         </div>
       </div>
     </>

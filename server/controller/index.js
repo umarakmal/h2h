@@ -3,6 +3,8 @@ const Issue_Master = require("../models/issueMaster");
 const Handler_Master = require("../models/handlerMaster");
 const HandlerMapping = require("../models/handlerMapping");
 const Email_Log = require("../models/emailLog");
+const Sms_Log = require("../models/smsLog")
+const IpWhitelist = require("../models/ipWhitelist")
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -127,7 +129,6 @@ exports.raiseIssue = async (req, res) => {
     var cm_id = req.body.cm_id;
     var subissue = req.body.issue;
     var getCaseid = await Issue_Tracker.find();
-
     var location = req.body.location;
 
     if (location === "1") {
@@ -148,6 +149,8 @@ exports.raiseIssue = async (req, res) => {
       location === "Nashik";
     } else if (location === "9") {
       location === "Anantapur";
+    } else if (location === "10") {
+      location === "Gurugram";
     }
     const caseId = getCaseid.length + 1;
     if (getCaseid) {
@@ -160,6 +163,9 @@ exports.raiseIssue = async (req, res) => {
         mobile_no: req.body.mobile_no,
         requester_mobile_no: req.body.requester_mobile_no,
         AH: req.body.AH,
+        DOJ: req.body.DOJ,
+        DOD: req.body.DOD,
+        alt_mobile: req.body.alt_mobile,
         Process: req.body.Process,
         name: req.body.name,
         location: location,
@@ -218,7 +224,7 @@ exports.getRaiseIssue = async (req, res) => {
                   $in: ["$issue", "$$issue"],
                 },
                 status: {
-                  $nin: ["Resolved", "Close"],
+                  $nin: ["Resolved", "Close", "Reject"],
                 },
                 $or: [
                   {
@@ -333,7 +339,7 @@ exports.getRaiseIssueForHandler2 = async (req, res) => {
                   $in: ["$issue", "$$issue"],
                 },
                 status: {
-                  $nin: ["Resolved", "Close"],
+                  $nin: ["Resolved", "Close", "Reject"],
                 },
                 flag: 1,
                 $or: [
@@ -381,7 +387,10 @@ exports.getRaiseIssueById = async (req, res) => {
 exports.updateRaiseIssueById = async (req, res) => {
   try {
     const id = req.body.id;
+    const name = req.body.name;
+    const phone = req.body.phone
     const status = req.body.status;
+    const caseId = req.body.caseId;
     var referred_Remark = "";
     var flag = 0;
     let referredDate;
@@ -399,6 +408,10 @@ exports.updateRaiseIssueById = async (req, res) => {
         referredDate: referredDate,
       },
     });
+
+    // if (status === "Resolved") {
+    //   sendSmsApi(name, phone, caseId)
+    // }
     return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json(err);
@@ -409,45 +422,27 @@ exports.updateRaiseIssueByIdL2 = async (req, res) => {
   try {
     const id = req.body.id;
     const status = req.body.status;
-    var cm_id = req.body.cm_id;
-    var subissue = req.body.subissue;
-    const dataAssign = await HandlerMapping.find({
-      status: "active",
-      cm_id: cm_id,
-      subissue: subissue,
-    });
+    const name = req.body.name;
+    const phone = req.body.phone
+    const caseId = req.body.caseId;
+
     const flag = 1;
-    if (dataAssign.length > 0) {
-      var HandlerL2 = dataAssign[0].HandlerL2;
-      var HandlerL2Name = dataAssign[0].HandlerL2Name;
-      // Save the new issue to the database
-      const result = await Issue_Tracker.findByIdAndUpdate(
-        id,
-        {
-          status,
-          HandlerL2,
-          flag,
-          HandlerL2Name,
-        },
-        {
-          useFindAndModify: false,
-        }
-      );
-      return res.status(200).json(result);
-    } else {
-      // Save the new issue to the database
-      const result = await Issue_Tracker.findByIdAndUpdate(
-        id,
-        {
-          status,
-          flag,
-        },
-        {
-          useFindAndModify: false,
-        }
-      );
-      return res.status(200).json(result);
-    }
+
+    const result = await Issue_Tracker.findByIdAndUpdate(
+      id,
+      {
+        status,
+        flag,
+      },
+      {
+        useFindAndModify: false,
+      }
+    );
+    // if (status === "Resolved") {
+    //   sendSmsApi(name, phone, caseId)
+    // }
+    return res.status(200).json(result);
+
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -509,22 +504,52 @@ exports.updateRaiseIssueByIDRequester = async (req, res) => {
 exports.signin = async (req, res) => {
   try {
     const { employeeid, password } = req.body;
-    // Save the new issue to the database
-
+    // `${api}/Services/h2h/Get_Login.php`
     const result = await axios.get(`${demo_api}/Get_Login.php`, {
       params: {
         LoginId: employeeid,
         refrance: password,
       },
     });
-
+    let flagAdmin = 0
+    let empList = ["CE10091236", "CE01145570", "CE0321936918"]
+    empList.map((el) => {
+      if (el === employeeid) {
+        flagAdmin = 1
+      }
+    })
     const id = result.data[0].EmployeeID;
     const result1 = result.data[0];
     const token = jwt.sign({ id: id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+    let flagHandlerL1 = 0
+    //For Menu Hide and show
+    const checkHandlerL1ForMenu = await HandlerMapping.aggregate([
+      {
+        $match: {
+          HandlerL1: employeeid,
+        },
+      },
+    ]);
 
-    return res.status(200).json({ token, user: { result1 } });
+    if (checkHandlerL1ForMenu.length > 0) {
+      flagHandlerL1 = 1
+    }
+    const checkHandlerL2ForMenu = await HandlerMapping.aggregate([
+      {
+        $match: {
+          HandlerL2: employeeid,
+        },
+      },
+    ]);
+    let flagHandlerL2 = 0
+    if (checkHandlerL2ForMenu.length > 0) {
+      flagHandlerL2 = 1
+    }
+    if (result.status === 200) {
+      return res.status(200).json({ token, user: { result1, flagHandlerL1, flagHandlerL2, flagAdmin } });
+    }
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -868,11 +893,7 @@ exports.getProcess = async (req, res) => {
   try {
     const Empid = "CE10091236";
     const result = await axios.get(`${api}/Services/h2h/Get_Process.php`);
-    if (result.status === 200) {
-      return res.status(200).json(result.data);
-    } else {
-      return res.status(401).json("No Data");
-    }
+    return res.status(200).json(result.data);
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -1126,6 +1147,10 @@ exports.getReport = async (req, res) => {
           reportto: 1,
           AH: 1,
           name: 1,
+          DOD: 1,
+          DOJ: 1,
+          alt_mobile: 1,
+          requester_mobile_no: 1,
           requestby: 1,
           location: 1,
           Process: 1,
@@ -2322,39 +2347,6 @@ exports.getRoaster = async (req, res) => {
   }
 };
 
-exports.getHandlerForMenu = async (req, res) => {
-  try {
-    var handler = req.body.handler;
-    // Save the new issue to the database
-    const result = await Issue_Tracker.aggregate([
-      {
-        $match: {
-          HandlerL1: handler,
-        },
-      },
-    ]);
-    return res.status(200).json(result);
-  } catch (err) {
-    return res.status(500).json(err);
-  }
-};
-exports.getHandlerForMenuL2 = async (req, res) => {
-  try {
-    var handler = req.body.handler;
-    // Save the new issue to the database
-    const result = await Issue_Tracker.aggregate([
-      {
-        $match: {
-          HandlerL2: handler,
-        },
-      },
-    ]);
-    return res.status(200).json(result);
-  } catch (err) {
-    return res.status(500).json(err);
-  }
-};
-
 exports.checkremark = async (req, res) => {
   try {
     const id = req.body.id;
@@ -2399,7 +2391,7 @@ exports.lockAtHandler2 = async (req, res) => {
     } else {
       return res.status(400).json("already Assigned");
     }
-    return res.status(200).json(handlerL2Remark.HandlerL2);
+    // return res.status(200).json(handlerL2Remark.HandlerL2);
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -2694,7 +2686,6 @@ exports.findHandlerMappingNew = async (req, res) => {
       },
     ])
     return res.status(200).json(handlerData)
-
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -2765,8 +2756,61 @@ exports.getParticularMappedDAta = async (req, res) => {
       },
     ])
     return res.status(200).json(handlerData)
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+exports.checkSameConcernDate = async (req, res) => {
+  try {
+    const requestby = req.body.requestby
+    const belongsTo = req.body.belongsTo
+    const issue = req.body.issue
+    const concernof = req.body.concernof
+    const checkConcernof = await Issue_Tracker.aggregate(
+      [
+        {
+          $match: {
+            belongsTo: belongsTo,
+            issue: issue,
+            requestby: requestby,
+            "concern.concernof": new Date(concernof),
+          },
+        },
+      ]
+    )
+    let check = false
+    if (checkConcernof.length > 0) {
+      check = true
+    } else {
+      check = false
+    }
+    return res.status(200).json(check)
 
   } catch (err) {
     return res.status(500).json(err);
   }
 };
+
+
+sendSmsApi = async (name, phone, caseId) => {
+  try {
+    const EmployeeID = "CE0322943949"
+
+    let smsmsg = `Dear ${name} ,(INTID - ${EmployeeID}) Cogent welcomes you. Kindly click the link to acknowledge your health concern http://interview.cogentems.com/interview/weeklyackcovidform.php?intid=${EmployeeID}`
+
+    const data = await axios.get(`${process.env.SMS_API}/sendsms/?token=${process.env.TokenSms}&sender=COGENT&number=${phone}&credit=2&message=${smsmsg}&templateid=${process.env.TEMPLATEID}`)
+    // console.log(data.data);
+    const sms_response = new Sms_Log({
+      caseId: caseId,
+      mobile_no: phone,
+      responce: JSON.stringify(data.data),
+    });
+    await sms_response.save();
+    return data.data
+
+  } catch (err) {
+    return
+  }
+};
+

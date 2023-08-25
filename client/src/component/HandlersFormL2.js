@@ -293,8 +293,8 @@ const HandlersFormL2 = () => {
       // Perform the validation check
       if (newValue < 0) {
         newValue = 0;
-      } else if (newValue > 1) {
-        newValue = 1;
+      } else if (newValue > 2) {
+        newValue = 2;
       }
       setPayOut((prevRemarks) => ({
         ...prevRemarks,
@@ -362,6 +362,9 @@ const HandlersFormL2 = () => {
         try {
           const id = modalData._id;
           const cm_id = isAuth().result1.cm_id;
+          const name = modalData.name
+          const phone = modalData.requester_mobile_no
+          const caseId = modalData.caseId
           const response = await fetch(
             `${url}/api/update-master-issue-by-id-l2`,
             {
@@ -369,7 +372,7 @@ const HandlersFormL2 = () => {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ id, status, cm_id }),
+              body: JSON.stringify({ id, status, cm_id, name, phone, caseId }),
             }
           );
           if (!response.ok) {
@@ -749,6 +752,33 @@ const HandlersFormL2 = () => {
             </div>
             <div className="col-sm-4">
               <div className="form-group">
+                <label htmlFor="validationCustom01">DOJ :</label>
+
+                <label className="ml-1">
+                  {modalData.DOJ ? formatDate(new Date(modalData.DOJ)) : null}
+                </label>
+              </div>
+            </div>
+            <div className="col-sm-4">
+              <div className="form-group">
+                <label htmlFor="validationCustom01">DOD :</label>
+
+                <label className="ml-1">
+                  {modalData.DOD ? formatDate(new Date(modalData.DOD)) : null}
+                </label>
+              </div>
+            </div>
+            <div className="col-sm-4">
+              <div className="form-group">
+                <label htmlFor="validationCustom01">Alternate Number :</label>
+
+                <label className="ml-1">
+                  {modalData ? modalData.alt_mobile : null}
+                </label>
+              </div>
+            </div>
+            <div className="col-sm-4">
+              <div className="form-group">
                 <label htmlFor="validationCustom01">Communicated With :</label>
 
                 <label className="ml-1">
@@ -883,7 +913,7 @@ const HandlersFormL2 = () => {
                               type="number"
                               min="0"
                               placeholder={el.payoutDays}
-                              max="1"
+                              max="2"
                               step="0.5"
                               value={payout[el._id] || ""}
                               className="form-control form-control-sm"
@@ -958,6 +988,7 @@ const HandlersFormL2 = () => {
                   <option value="">Select</option>
                   {/* {modalData.checkRemarkHandler2 === 0 ? <option>In Progress L2</option> : null} */}
                   <option>Resolved</option>
+                  <option>Reject</option>
                 </select>
               </label>
               {validSelect ? (

@@ -4,7 +4,9 @@ import cookie from 'js-cookie';
 export const setCookie = (key, value) => {
     if (window !== 'undefined') {
         cookie.set(key, value, {
-            expires: 7
+            expires: 7,
+            secure: true,
+            sameSite: 'none'
         });
     }
 };

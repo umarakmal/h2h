@@ -3,13 +3,12 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 var path = require("path");
 const cron = require("cron");
+const IpWhitelist = require("./models/ipWhitelist")
 const Issue_Tracker = require('./models/issueTracker')
 //Loads environment variables from .env file
 require("dotenv").config();
 const cors = require("cors");
-
 const app = express();
-
 //Connecting Database
 mongoose
   .connect(process.env.DATABASE, {
@@ -32,6 +31,26 @@ app.use(express.static(__dirname + '/public'));
 // app.use(express.static(path.join(__dirname, 'build')));
 // middleware
 app.use("/api", issueRoutes);
+
+app.get('/ip', async function (req, res) {
+  try {
+    const ipAddress = req.header('x-forwarded-for') ||
+      req.socket.remoteAddress;
+    var ip = ipAddress.split(':')
+    console.log(ip[2]);
+    let flag = 0
+    const ipAddressesArray = await IpWhitelist.find({})
+    ipAddressesArray.map((el) => {
+      if (el.IP === ip[2]) {
+        flag = 1
+      }
+    })
+    res.status(200).json(flag);
+  } catch (error) {
+    res.status(500).json(error)
+  }
+
+});
 
 const updateIssueStatus = async () => {
   try {

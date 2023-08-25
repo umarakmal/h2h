@@ -90,13 +90,34 @@ const Report = () => {
       headerName: "Location",
       width: 100,
     },
-    // {
-    //     field: "contactno",
-    //     headerClassName: "font-weight-bold small",
-    //     cellClassName: "small ",
-    //     headerName: "Contact No.",
-    //     width: 140,
-    // },
+    {
+      field: "DOD",
+      headerClassName: "font-weight-bold small",
+      cellClassName: "small ",
+      headerName: "DOD",
+      width: 100,
+    },
+    {
+      field: "DOJ",
+      headerClassName: "font-weight-bold small",
+      cellClassName: "small ",
+      headerName: "DOJ",
+      width: 100,
+    },
+    {
+      field: "requester_mobile_no",
+      headerClassName: "font-weight-bold small",
+      cellClassName: "small ",
+      headerName: "Mobile No. (own)",
+      width: 140,
+    },
+    {
+      field: "alt_mobile",
+      headerClassName: "font-weight-bold small",
+      cellClassName: "small ",
+      headerName: "Alternate No.",
+      width: 100,
+    },
     {
       field: "communicatedname",
       headerClassName: "font-weight-bold small",
@@ -310,6 +331,10 @@ const Report = () => {
     issuesubtype: element.issue,
     status: element.status,
     name: element.name,
+    DOD: formatDate(new Date(element.DOD)),
+    DOJ: formatDate(new Date(element.DOJ)),
+    alt_mobile: element.alt_mobile,
+    requester_mobile_no: element.requester_mobile_no,
     process: element.Process,
     location: element.location,
     reportsto: element.reportto,
@@ -375,7 +400,7 @@ const Report = () => {
                                 placeholderText="Select Date"
                                 value={startDate}
                                 onChange={(date) => setStartDate(date)}
-                                dateFormat="yyyy-MM-dd"
+                                dateFormat="dd-MM-yyyy"
                                 id="date1"
                                 autoComplete="off"
                                 required
@@ -398,12 +423,10 @@ const Report = () => {
                             >
                               To:
                             </label>
-                            {/* <input className="form-control form-control-sm"
-                                                        /> */}
                             <div>
                               <DatePicker
                                 selected={endDate}
-                                dateFormat="yyyy-MM-dd"
+                                dateFormat="dd-MM-yyyy"
                                 className="form-control form-control-sm"
                                 selectsEnd
                                 placeholderText="Select Date"

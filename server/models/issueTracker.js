@@ -109,6 +109,18 @@ const issue_tracker = new Schema(
       type: Date,
       default: "",
     },
+    alt_mobile: {
+      type: String,
+      default: "",
+    },
+    DOD: {
+      type: Date,
+      default: ""
+    },
+    DOJ: {
+      type: Date,
+      default: ""
+    },
     concern: [
       {
         concernof: {

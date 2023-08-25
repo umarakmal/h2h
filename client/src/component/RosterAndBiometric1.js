@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Header from "../Header";
 import Footer from "../Footer";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import Menu from '../Menu';
 import { useParams } from 'react-router-dom';
 import { decode as base64_decode } from 'base-64';
@@ -25,7 +25,7 @@ const RosterAndBiometric = () => {
             signout(() => {
                 navigate("/");
             })
-    }, []);
+    }, [navigate]);
 
     const handleDate = (e) => {
         setStartDate(e.target.value)
@@ -119,7 +119,7 @@ const RosterAndBiometric = () => {
     const formattedLastDay = lastDayOfMonth.toISOString().slice(0, 10); // Convert to YYYY-MM-DD format
     const twoMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 2, 1);
     const formattedTwoMonthsAgo = twoMonthsAgo.toISOString().slice(0, 10); // Convert to YYYY-MM-DD format
-
+    let attendanceShow = 0
     return (
         <>
             <Header />
@@ -141,14 +141,8 @@ const RosterAndBiometric = () => {
                                                 <h5 className="card-title">Attendance - <span style={{ fontSize: '1rem' }}>{EmployeeName ? EmployeeName : null} ({datas.EmployeeID})</span></h5>
 
                                             </div>
-                                            {/* <div className='col-md-2'>
-                                <label style={{ fontSize: '.7rem' }}>Month : {datas.month}</label>
-                            </div>
-                            <div className='col-md-2'>
-                                <label style={{ fontSize: '.7rem' }}>Year : {datas.year}</label>
-                            </div> */}
+
                                             <div className=" col-md-2">
-                                                {/* <div className="col-md-12"> */}
                                                 <label style={{ fontSize: ".7rem" }}>
                                                     Change Month
                                                 </label>
@@ -165,16 +159,14 @@ const RosterAndBiometric = () => {
                                                     onChange={handleDate}
                                                     className="form-control form-control-sm form-control-border"
                                                 />
-                                                {/* </div> */}
                                             </div>
                                         </div>
                                         <br />
 
                                         <div style={{ overflow: 'auto' }}>
-                                            <Table striped bordered hover size="sm" className='table '>
+                                            <Table bordered hover size="sm" className='table '>
                                                 <thead>
                                                     <tr style={{ fontSize: '.7rem' }}>
-                                                        {/* <th>#</th> */}
                                                         <th>Date</th>
                                                         <th>Day</th>
                                                         <th>Attandance</th>
@@ -189,6 +181,7 @@ const RosterAndBiometric = () => {
                                                 </thead>
 
                                                 {isData ? <tbody style={{ fontSize: '.8rem' }}>
+
                                                     {datas.attandanceList ? datas.attandanceList.map((el, ind) => {
                                                         let formattedTimeDifference
                                                         const startTime = new Date(`2000-01-01T${el.InTime}`);
@@ -207,19 +200,24 @@ const RosterAndBiometric = () => {
 
                                                             formattedTimeDifference = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
                                                         }
-                                                        return <tr key={el.id}>
-                                                            {/* <td>{ind + 1}</td> */}
-                                                            <td>{el.date}</td>
-                                                            <td>{el.dayName}</td>
-                                                            <td>{el.attandance}</td>
-                                                            {aprShow ? <td>{el.downtime}</td> : null}
-                                                            {aprShow ? <td>{el.netHours}</td> : null}
-                                                            <td>{el.InTime}</td>
-                                                            <td>{el.OutTime}</td>
-                                                            <td>{formattedTimeDifference ? formattedTimeDifference : null}</td>
-                                                            <td>{el.roasterIn}</td>
-                                                            <td>{el.roasterOut}</td>
-                                                        </tr>
+
+                                                        if (el.attandance === null) {
+                                                            attendanceShow++
+                                                        }
+                                                        if (attendanceShow < 2) {
+                                                            return <tr key={el.id}>
+                                                                <td>{el.date}</td>
+                                                                <td>{el.dayName}</td>
+                                                                <td className={`${el.attandance === "P" ? "bg-info" : el.attandance === "WO" ? "bg-success" : el.attandance === "L" ? "bg-success" : "border"}`}>{el.attandance}</td>
+                                                                {aprShow ? <td>{el.downtime}</td> : null}
+                                                                {aprShow ? <td>{el.netHours}</td> : null}
+                                                                <td>{el.InTime}</td>
+                                                                <td>{el.OutTime}</td>
+                                                                <td>{formattedTimeDifference ? formattedTimeDifference : null}</td>
+                                                                <td>{el.roasterIn}</td>
+                                                                <td>{el.roasterOut}</td>
+                                                            </tr>
+                                                        }
                                                     }) : null}
                                                 </tbody> : null}
                                             </Table>

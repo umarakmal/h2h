@@ -44,10 +44,8 @@ const {
   dashboardHandlerL1SatisfiedWithProcessCount,
   getRequestersHistory,
   getRoaster,
-  getHandlerForMenu,
-  getHandlerForMenuL2,
   checkremark,
-  dashboardTotalCount,
+  dashboardTotalCount, checkSameConcernDate, checkIpWhitelist,
   lockAtHandler2, findHandlerMappingNew, getParticularMappedDAta
 } = require("../controller");
 const router = express.Router();
@@ -71,6 +69,7 @@ router.put(
 );
 router.put("/update-raise-issue-payout-days", updateSubIssuesHandlerPayoutDays);
 router.put("/assign-handler", AssignHandler);
+router.post("/check-same-concerndate", checkSameConcernDate);
 //issue
 router.post("/create-master-issue", createMasterIssue);
 router.post("/get-master-issue", getMasterIssue);
@@ -125,7 +124,6 @@ router.post("/get-requesters-history", getRequestersHistory);
 //Roaster
 router.post("/get-roaster", getRoaster);
 //For menu
-router.post("/get-handler-menu", getHandlerForMenu);
-router.post("/get-handler-menu-l2", getHandlerForMenuL2);
 router.post("/check-remark", checkremark);
+
 module.exports = router;

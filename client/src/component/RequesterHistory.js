@@ -134,6 +134,33 @@ function RequesterHistory() {
                                             </div>
                                             <div className="col-sm-4">
                                                 <div className="form-group">
+                                                    <label htmlFor="validationCustom01">DOJ :</label>
+
+                                                    <label className="ml-1">
+                                                        {empDataDet.DOJ ? formatDate(new Date(empDataDet.DOJ)) : null}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-4">
+                                                <div className="form-group">
+                                                    <label htmlFor="validationCustom01">DOD :</label>
+
+                                                    <label className="ml-1">
+                                                        {empDataDet.DOD ? formatDate(new Date(empDataDet.DOD)) : null}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-4">
+                                                <div className="form-group">
+                                                    <label htmlFor="validationCustom01">Alternate Number :</label>
+
+                                                    <label className="ml-1">
+                                                        {empDataDet ? empDataDet.alt_mobile : null}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div className="col-sm-4">
+                                                <div className="form-group">
                                                     <label
                                                         htmlFor="validationCustom01"
                                                     >
